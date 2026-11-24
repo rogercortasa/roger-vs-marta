@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Roger vs Marta</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Roger vs Marta">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fff6e9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17112b" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: concurs de sofà, juganer i càlid, mai infantil
+   IDEA: una ruleta de categories de concurs de TV feta a casa, amb fitxes de color de cada jugador
+   PICTURE: la ruleta de cinc categories amb el VS al centre; després, la targeta de pregunta
+   COLOUR and TYPE: fons crema clar / nit violeta; Roger blau elèctric, Marta gerd; categories taronja, lila, turquesa, groc, llima. Fredoka + Nunito
+   LAYOUT: una columna de mòbil, marcador fix a dalt, botons grossos a baix a l'abast del polze */
+:root{color-scheme:light dark;
+--bg:light-dark(#fff6e9,#17112b);--card:light-dark(#ffffff,#251c40);--ink:light-dark(#1d1533,#f6efff);--mute:light-dark(#6d6385,#b7acd3);
+--line:light-dark(#eadfce,#3a2f5c);--soft:light-dark(#f6ecdd,#2e2450);
+--roger:#2457ff;--marta:#ff3d6e;--dark:#1d1533}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{-webkit-user-select:none;user-select:none;font:17px/1.45 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100dvh}
+button,input,textarea{font:inherit;color:inherit}
+h1,h2,h3,.f{font-family:Fredoka,Nunito,sans-serif;font-weight:700;line-height:1.05;margin:0;text-wrap:balance}
+.app{max-width:520px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;
+padding:max(14px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.grow{flex:1}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:58px;border:0;border-radius:20px;padding:12px 18px;
+font:700 19px Fredoka,sans-serif;background:var(--dark);color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.28);cursor:pointer;transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+.btn:disabled{opacity:.4;pointer-events:none}
+.btn.alt{background:var(--card);color:var(--ink);box-shadow:0 5px 0 var(--line);border:2px solid var(--line)}
+.btn.r{background:var(--roger)}.btn.m{background:var(--marta)}
+.btn.sm{min-height:46px;font-size:16px;border-radius:14px}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.stackb{display:grid;gap:12px}
+.link{background:none;border:0;color:var(--mute);font-weight:800;text-decoration:underline;padding:12px;min-height:44px;cursor:pointer}
+:focus-visible{outline:3px solid var(--roger);outline-offset:3px}
+/* home */
+.hero{text-align:center;padding-top:8px}
+.logo{font-size:clamp(40px,12vw,54px);letter-spacing:-.5px}
+.logo .a{color:var(--roger)}.logo .b{color:var(--marta)}.logo .vs{font-size:.5em;vertical-align:middle;background:var(--dark);color:#fff;border-radius:12px;padding:2px 10px;margin:0 6px;display:inline-block;transform:rotate(-6deg)}
+.sub{color:var(--mute);font-weight:800;margin:8px 0 0}
+.wheelbox{position:relative;width:min(78vw,320px);aspect-ratio:1;margin:18px auto 14px}
+.wheelbox svg{width:100%;height:100%;overflow:visible}
+.wg{transform-origin:100px 100px;transform-box:view-box;transition:transform 1.05s cubic-bezier(.2,.75,.2,1)}
+.idle .wg{animation:idle 40s linear infinite}
+@keyframes idle{to{transform:rotate(360deg)}}
+.tally{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;background:var(--card);border:2px solid var(--line);border-radius:22px;padding:12px 14px;margin-bottom:16px}
+.tally .t{text-align:center}.tally b{font:700 30px Fredoka;display:block;line-height:1}
+.tally small{color:var(--mute);font-weight:800;font-size:13px}
+/* top bar */
+.top{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;background:var(--bg);padding:4px 0 12px}
+.pl{display:flex;align-items:center;gap:8px;border-radius:16px;padding:6px 10px;background:var(--card);border:2px solid var(--line);transition:border-color .2s}
+.pl.on{border-color:currentColor}
+.pl.r{color:var(--roger)}.pl.m{color:var(--marta);flex-direction:row-reverse}
+.pl .nm{font:700 15px Fredoka;color:var(--ink)}
+.pl .sc{font:700 24px Fredoka;margin-inline-start:auto}.pl.m .sc{margin-inline-start:0;margin-inline-end:auto}
+.pop{animation:pop .45s}
+@keyframes pop{40%{transform:scale(1.5)}}
+.mid{text-align:center;font-weight:800;font-size:13px;color:var(--mute);line-height:1.2}
+.x{width:44px;height:44px;border-radius:14px;border:2px solid var(--line);background:var(--card);cursor:pointer;font:700 18px Fredoka}
+.dots{display:flex;gap:5px;justify-content:center;margin:2px 0 14px}
+.dots i{width:9px;height:9px;border-radius:9px;background:var(--line);transition:.2s}
+.dots i.d{background:var(--mute)}.dots i.c{width:24px;background:var(--cc,var(--ink))}
+.dots i.ok{background:#22c55e}.dots i.ko{background:#ef4444}.dots i.half{background:#f59e0b}
+/* card */
+.card{background:var(--card);border-radius:28px;padding:20px 18px 18px;box-shadow:0 10px 0 var(--cc),0 18px 30px rgba(29,21,51,.12);border:3px solid var(--cc);margin-bottom:22px;animation:in .35s cubic-bezier(.2,.8,.3,1.2)}
+@keyframes in{from{opacity:0;transform:translateY(24px) scale(.96)}}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--cc);color:var(--dark);font:700 14px Fredoka;border-radius:99px;padding:5px 12px}
+.who{font-weight:800;font-size:15px;margin:14px 0 4px}
+.q{font-size:clamp(25px,7vw,31px);margin:4px 0 18px}
+.opts{display:grid;gap:10px}
+.opt{min-height:56px;border-radius:18px;border:3px solid var(--line);background:var(--soft);text-align:start;padding:10px 16px;font-weight:800;font-size:17px;cursor:pointer;transition:transform .1s,background .15s}
+.opt:active{transform:scale(.98)}
+.opt.sel{background:var(--cc);border-color:var(--dark);color:var(--dark)}
+textarea,input[type=text]{-webkit-user-select:text;user-select:text;width:100%;border:3px solid var(--line);border-radius:18px;background:var(--soft);padding:14px 16px;font-size:17px;font-weight:700;resize:none}
+textarea:focus,input[type=text]:focus{outline:none;border-color:var(--cc,var(--roger))}
+/* handoff */
+.hand{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;justify-content:center;gap:16px;text-align:center;color:#fff;
+padding:max(24px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom));animation:fade .3s}
+.hand>*{max-width:460px;width:100%;margin-inline:auto}
+.hand h1{font-size:clamp(38px,11vw,52px)}
+.hand p{font-size:19px;font-weight:700;margin:0;opacity:.95}
+.hand .btn{background:#fff;color:var(--dark);margin-top:18px}
+.hand .link{color:#fff}
+.phone{width:84px;height:84px;margin:0 auto;animation:wob 1.6s ease-in-out infinite}
+@keyframes wob{50%{transform:rotate(-12deg) translateX(-6px)}}
+@keyframes fade{from{opacity:0}}
+/* spin */
+.spin{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
+.spin .wheelbox{width:min(70vw,280px)}
+/* reveal */
+.ansbox{border-radius:18px;padding:12px 14px;background:var(--soft);border:2px dashed var(--line);margin-top:10px}
+.ansbox small{display:block;font-weight:800;color:var(--mute);font-size:13px}
+.ansbox b{font-size:19px;overflow-wrap:anywhere}
+.secret{display:flex;align-items:center;justify-content:center;min-height:76px;font:700 34px Fredoka;color:var(--mute)}
+.shown{animation:flip .5s cubic-bezier(.3,.9,.3,1.2);border-style:solid;border-color:var(--cc)}
+@keyframes flip{from{transform:rotateX(90deg);opacity:0}}
+.stamp{display:inline-block;margin-top:14px;font:700 22px Fredoka;padding:6px 16px;border-radius:14px;color:#fff;transform:rotate(-4deg);animation:stamp .4s cubic-bezier(.3,1.6,.5,1)}
+@keyframes stamp{from{transform:scale(2.4) rotate(-4deg);opacity:0}}
+.ok{background:#16a34a}.ko{background:#dc2626}.half{background:#d97706}
+.judge{margin-top:14px}.judge p{font-weight:800;margin:0 0 8px}
+/* summary/final */
+.big{font:700 clamp(84px,26vw,120px)/1 Fredoka;text-align:center}
+.center{text-align:center}
+.vsres{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.vsres div{border-radius:22px;padding:16px;color:#fff;text-align:center}
+.vsres b{font:700 46px Fredoka;display:block;line-height:1}
+.crown{font:700 14px Fredoka;background:#fff;color:var(--dark);border-radius:99px;padding:2px 10px;display:inline-block;margin-bottom:6px}
+/* setup + bank */
+.hd{display:flex;align-items:center;gap:10px;margin-bottom:16px}.hd h2{font-size:30px;flex:1}
+.sec{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:16px;margin-bottom:14px}
+.sec h3{font-size:18px;margin-bottom:10px}
+.note{color:var(--mute);font-size:14px;font-weight:700;margin:6px 0 0}
+.stepper{display:flex;align-items:center;gap:12px}
+.stepper button{width:56px;height:56px;border-radius:18px;border:2px solid var(--line);background:var(--soft);font:700 26px Fredoka;cursor:pointer}
+.stepper b{flex:1;text-align:center;font:700 42px Fredoka}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.cchip{min-height:44px;border-radius:99px;border:3px solid var(--cc);background:transparent;padding:6px 14px;font:700 16px Fredoka;cursor:pointer}
+.cchip.on{background:var(--cc);color:var(--dark)}
+.seg{display:flex;gap:8px}.seg button{flex:1;min-height:50px;border-radius:16px;border:3px solid var(--line);background:var(--soft);font:700 17px Fredoka;cursor:pointer}
+.seg button.on{color:#fff;border-color:transparent}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px 6px;scrollbar-width:none}
+.tabs .cchip{flex:none}
+.qi{background:var(--card);border:2px solid var(--line);border-left:8px solid var(--cc);border-radius:18px;padding:12px 12px 10px 14px;margin-bottom:10px}
+.qi p{margin:0 0 4px;font-weight:800}
+.qi small{color:var(--mute);font-weight:700;display:block;margin-bottom:8px}
+.qi .row .btn{min-height:42px;font-size:15px;border-radius:12px;box-shadow:0 3px 0 var(--line)}
+.tag{font-size:12px;font-weight:800;background:var(--soft);border-radius:8px;padding:1px 7px;margin-inline-start:6px;color:var(--mute)}
+.empty{text-align:center;color:var(--mute);font-weight:800;padding:30px 10px}
+/* modal */
+.mod{position:fixed;inset:0;z-index:30;background:rgba(15,10,30,.55);display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
+.sheet{background:var(--bg);width:100%;max-width:520px;max-height:92dvh;overflow:auto;border-radius:28px 28px 0 0;padding:20px 18px max(20px,env(safe-area-inset-bottom));animation:up .28s cubic-bezier(.2,.8,.3,1)}
+@keyframes up{from{transform:translateY(100%)}}
+.sheet h2{font-size:26px;margin-bottom:14px}
+.sheet label{display:block;font-weight:800;margin:14px 0 6px}
+.oprow{display:flex;gap:8px;margin-bottom:8px}.oprow button{width:48px;flex:none;border-radius:14px;border:2px solid var(--line);background:var(--card);font:700 20px Fredoka;cursor:pointer}
+.err{color:#dc2626;font-weight:800;font-size:14px;min-height:20px;margin:8px 0}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div id="layer"></div>
+<script>
+{
+const CATS={gustos:{n:'Gustos',c:'#ff9f1c'},records:{n:'Records',c:'#a78bfa'},habits:{n:'Hàbits',c:'#2dd4bf'},plans:{n:'Plans',c:'#facc15'},absurd:{n:'Absurd',c:'#a3e635'}};
+const CK=Object.keys(CATS);
+const P={roger:{n:'Roger',a:'el',self:'ell mateix',c:'var(--roger)',k:'r'},marta:{n:'Marta',a:'la',self:'ella mateixa',c:'var(--marta)',k:'m'}};
+const other=p=>p==='roger'?'marta':'roger';
+const A=p=>P[p].a+' '+P[p].n, Acap=p=>A(p)[0].toUpperCase()+A(p).slice(1);
+const SEED=[
+['gustos','Quin és el teu plat preferit?'],
+['gustos','Platja o muntanya?',['Platja','Muntanya','Totes dues','Cap de les dues']],
+['gustos','Dolç o salat?',['Dolç','Salat','Depèn del moment']],
+['gustos','Quina és la teva sèrie preferida de tots els temps?'],
+['gustos','Quin gust de gelat demanes sense pensar-t\'ho?'],
+['gustos','Cafè, te o res?',['Cafè','Te','Res','Una altra cosa']],
+['gustos','Quina cançó poses per animar-te?'],
+['gustos','Pizza amb pinya?',['Sí, sense dubte','Mai de la vida','Depèn del dia']],
+['records','On va ser la nostra primera cita?'],
+['records','Quin és el millor viatge que hem fet junts?'],
+['records','Quin és el teu primer record d\'infància?'],
+['records','Què vas pensar la primera vegada que em vas veure?'],
+['records','Quin regal meu t\'ha fet més il·lusió?'],
+['records','Quin dia junts tornaries a viure?'],
+['records','Quina és la teva anècdota més vergonyosa?'],
+['habits','Quant tardes a sortir de casa des que dius «ja vinc»?',['Menys de 5 minuts','De 5 a 15 minuts','De 15 a 30 minuts','Més de mitja hora']],
+['habits','Què és el primer que fas quan et lleves?',['Mirar el mòbil','Anar al lavabo','Cafè o esmorzar','Posposar l\'alarma']],
+['habits','Dutxa de matí o de nit?',['Matí','Nit','Totes dues','Depèn']],
+['habits','Quantes alarmes poses al matí?',['Una','Dues o tres','Quatre o més','Cap']],
+['habits','Quina app obres més cops al dia?'],
+['habits','Com dorms?',['De costat esquerre','De costat dret','Panxa enlaire','Panxa avall']],
+['habits','Què fas quan estàs estressat o estressada?'],
+['plans','Quin país vols visitar sí o sí?'],
+['plans','Si et toqués la loteria, què faries primer?'],
+['plans','Diumenge ideal?',['Sofà i manta','Excursió','Festa','Pla cultural']],
+['plans','On t\'imagines vivint d\'aquí a deu anys?'],
+['plans','Quin hobby començaries demà si tinguessis temps?'],
+['plans','Escapada sorpresa: on?',['Ciutat','Natura','Platja','Neu']],
+['plans','Mascota?',['Gos','Gat','Cap','Un zoo sencer']],
+['absurd','Si fossis un electrodomèstic, quin series?'],
+['absurd','En un apocalipsi zombi, quin paper tindries?',['Líder del grup','El primer a caure','Qui cuina','Qui porta el mapa']],
+['absurd','Quin superpoder inútil triaries?'],
+['absurd','Amb quin animal t\'agradaria poder parlar?'],
+['absurd','Contra què lluitaries?',['Un ànec de la mida d\'un cavall','Cent cavalls de la mida d\'un ànec']],
+['absurd','Quin objecte salvaries d\'un incendi? (Persones i animals ja són fora.)'],
+['absurd','Si la teva vida fos una pel·lícula, de quin gènere seria?',['Comèdia','Drama','Acció','Romàntica','Terror']],
+['absurd','Si fossis un menjar, quin series?']
+].map((s,i)=>({id:'s'+i,c:s[0],t:s[1],o:s[2]||null}));
+
+const KEY='rvm-v1';
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.qs)S={qs:SEED.map(q=>({...q})),tally:{roger:0,marta:0,emp:0},game:null,setup:{n:10,cats:[...CK],first:'roger'}};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let view=S.game?'game':'home',filter='all',ed=null,modal=null,wheelRot=0,spinT=null,lastScore={};
+
+const app=document.getElementById('app'),layer=document.getElementById('layer');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9ç·]+/g,' ').trim();
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const cc=c=>`--cc:${CATS[c]?.c||'#ccc'}`;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function wheel(rot,label,cls=''){
+  let s='';
+  CK.forEach((k,i)=>{
+    const a0=(-90+72*i)*Math.PI/180,a1=(-90+72*(i+1))*Math.PI/180,f=n=>n.toFixed(2);
+    s+=`<path d="M100 100L${f(100+100*Math.cos(a0))} ${f(100+100*Math.sin(a0))}A100 100 0 0 1 ${f(100+100*Math.cos(a1))} ${f(100+100*Math.sin(a1))}Z" fill="${CATS[k].c}" stroke="#1d1533" stroke-width="3"/>`;
+    const am=-90+72*i+36;
+    s+=`<text transform="rotate(${am+90} 100 100)" x="100" y="40" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="15" fill="#1d1533">${CATS[k].n}</text>`;
+    for(let d=0;d<3;d++)s+=`<circle transform="rotate(${-90+72*i+90+18+d*18} 100 100)" cx="100" cy="9" r="2.6" fill="#fff" opacity=".85"/>`;
+  });
+  return `<div class="wheelbox ${cls}"><svg viewBox="-12 -20 224 232" aria-hidden="true">
+  <circle cx="100" cy="106" r="104" fill="#1d1533" opacity=".18"/>
+  <g class="wg" style="transform:rotate(${rot}deg)">${s}</g>
+  <circle cx="100" cy="100" r="101" fill="none" stroke="#1d1533" stroke-width="5"/>
+  <circle cx="100" cy="100" r="30" fill="#1d1533"/><circle cx="100" cy="100" r="24" fill="#fff6e9"/>
+  <text x="100" y="107" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="${label.length>2?13:20}" fill="#1d1533">${esc(label)}</text>
+  <path d="M88 -14H112L100 12Z" fill="#fff" stroke="#1d1533" stroke-width="4" stroke-linejoin="round"/></svg></div>`;
+}
+
+/* ---------- joc ---------- */
+function pick(n,cats,excl=[]){
+  let pool=S.qs.filter(q=>cats.includes(q.c)&&!excl.includes(q.id));
+  if(pool.length<n)pool=S.qs.filter(q=>cats.includes(q.c));
+  const by={};shuffle(pool).forEach(q=>(by[q.c]=by[q.c]||[]).push(q));
+  const out=[];let ks=shuffle(Object.keys(by));
+  while(out.length<n&&ks.length){ks=ks.filter(k=>by[k].length);for(const k of ks){if(out.length<n&&by[k].length)out.push(by[k].shift())}}
+  return out.map(q=>({qid:q.id,c:q.c,t:q.t,o:q.o?[...q.o]:null,ans:null,gs:null,pts:null,spun:false,shown:false}));
+}
+function newGame(){
+  const st=S.setup,f=st.first,r1=pick(st.n,st.cats),r2=pick(st.n,st.cats,r1.map(i=>i.qid));
+  S.game={n:Math.min(st.n,r1.length),r:0,done:false,rounds:[{prot:f,items:r1,ph:'h1',i:0},{prot:other(f),items:r2,ph:'h1',i:0}]};
+  view='game';save();render();
+}
+const G=()=>S.game, R=()=>G().rounds[G().r], IT=()=>R().items[R().i];
+function score(p){let s=0;for(const r of G().rounds)if(other(r.prot)===p)for(const it of r.items)s+=it.pts||0;return s}
+const fmt=n=>String(n).replace('.5','½').replace(/^0½/,'½');
+
+function topbar(){
+  const r=R(),g=other(r.prot),ph=r.ph;
+  const label=ph==='ans'?`Respon ${A(r.prot)}`:ph==='gs'?`Endevina ${A(g)}`:ph==='rev'?'Revelació':`Ronda ${G().r+1}`;
+  const cell=p=>{const s=score(p),pop=lastScore[p]!==undefined&&lastScore[p]!==s;lastScore[p]=s;
+    return `<div class="pl ${P[p].k} ${g===p&&ph!=='ans'?'on':''}"><span class="nm">${P[p].n}</span><span class="sc ${pop?'pop':''}">${fmt(s)}</span></div>`};
+  return `<div class="top">${cell('roger')}<div class="mid">Ronda ${G().r+1}/2<br>${esc(label)}<br><button class="x" data-a="quit" aria-label="Sortir de la partida">✕</button></div>${cell('marta')}</div>`;
+}
+function dots(){
+  const r=R();return `<div class="dots">${r.items.map((it,j)=>{
+    let c=j<r.i?'d':'';if(r.ph==='rev'&&it.pts!=null)c=it.pts===1?'ok':it.pts===0?'ko':'half';
+    if(j===r.i)c='c';return `<i class="${c}" style="${cc(r.items[j].c)}"></i>`}).join('')}</div>`;
+}
+function qCard(mode){
+  const r=R(),it=IT(),val=mode==='ans'?it.ans:it.gs,last=r.i===r.items.length-1;
+  const who=mode==='ans'?`Respon en secret, ${P[r.prot].n}`:`Què ha respost ${A(r.prot)}?`;
+  const field=it.o?`<div class="opts">${it.o.map((o,j)=>`<button class="opt ${val===o?'sel':''}" data-a="choose" data-v="${j}">${esc(o)}</button>`).join('')}</div>`
+    :`<textarea id="fa" rows="2" maxlength="140" placeholder="${mode==='ans'?'Escriu la teva resposta':'Què creus que ha posat?'}">${esc(val||'')}</textarea>`;
+  return `${topbar()}${dots()}
+  <div class="card" style="${cc(it.c)}"><span class="chip">${CATS[it.c].n}</span>
+  <div class="who" style="color:${P[mode==='ans'?r.prot:other(r.prot)].c}">${esc(who)}</div>
+  <h2 class="q">${esc(it.t)}</h2>${field}</div>
+  <div class="grow"></div>
+  <div class="row">${r.i>0?'<button class="btn alt" data-a="prev">Anterior</button>':''}
+  <button class="btn ${P[mode==='ans'?r.prot:other(r.prot)].k}" id="nx" data-a="next" ${val?'':'disabled'}>${last?'Fet':'Següent'}</button></div>
+  ${mode==='ans'?'<button class="link" data-a="swap">Canvia aquesta pregunta</button>':`<p class="note center">Pregunta ${r.i+1} de ${r.items.length}</p>`}`;
+}
+function hand(p,title,lines,btn,act){
+  return `<div class="hand" style="background:${P[p].c}">
+  <svg class="phone" viewBox="0 0 84 84" aria-hidden="true"><rect x="24" y="6" width="36" height="72" rx="9" fill="#fff"/><rect x="29" y="15" width="26" height="48" rx="3" fill="${P[p].c}" opacity=".35"/><circle cx="42" cy="70" r="3.5" fill="${P[p].c}"/></svg>
+  <h1>${esc(title)}</h1>${lines.map(l=>`<p>${esc(l)}</p>`).join('')}
+  <button class="btn" data-a="${act}">${esc(btn)}</button>
+  <button class="link" data-a="quit">Sortir de la partida</button></div>`;
+}
+function revealCard(){
+  const r=R(),it=IT(),g=other(r.prot),last=r.i===r.items.length-1;
+  const res=it.pts==null?'':`<span class="stamp ${it.pts===1?'ok':it.pts===0?'ko':'half'}">${it.pts===1?'Encert! +1':it.pts===0?'Fallat':'Gairebé +½'}</span>`;
+  const needJudge=it.shown&&it.pts==null;
+  return `${topbar()}${dots()}
+  <div class="card" style="${cc(it.c)}"><span class="chip">${CATS[it.c].n}</span>
+  <h2 class="q" style="margin-top:12px">${esc(it.t)}</h2>
+  <div class="ansbox"><small>${esc(Acap(g))} diu</small><b>${esc(it.gs)}</b></div>
+  <div class="ansbox ${it.shown?'shown':''}">${it.shown?`<small>${esc(Acap(r.prot))} va respondre</small><b>${esc(it.ans)}</b>`:'<div class="secret">?</div>'}</div>
+  <div class="center">${res}</div>
+  ${needJudge?`<div class="judge"><p>${esc(P[r.prot].n)}, ho dones per bo?</p><div class="row">
+  <button class="btn sm" style="background:#16a34a" data-a="judge" data-v="1">Sí</button>
+  <button class="btn sm" style="background:#d97706" data-a="judge" data-v="0.5">Gairebé</button>
+  <button class="btn sm" style="background:#dc2626" data-a="judge" data-v="0">No</button></div></div>`:''}
+  </div><div class="grow"></div>
+  ${!it.shown?`<button class="btn ${P[r.prot].k}" data-a="reveal">Revela la resposta</button>`
+   :it.pts!=null?`<button class="btn" data-a="next">${last?'Veure resum':'Següent'}</button>`:''}`;
+}
+function renderGame(){
+  const r=R(),p=r.prot,g=other(p);
+  if(G().done)return finalView();
+  if(r.ph==='h1')return hand(p,`Torn ${P[p].a==='el'?'del':'de la'} ${P[p].n}`,[`${P[p].n} respon en secret ${r.items.length} preguntes sobre ${P[p].self}.`,`${P[g].n}, gira't i no miris.`],`Sóc ${A(p)}, som-hi`,'start');
+  if(r.ph==='h2')return hand(g,'Respostes guardades',[`Ara passa el mòbil a ${A(g)}.`,`${P[g].n}, a veure quant coneixes ${A(p)}.`],`Sóc ${A(g)}, som-hi`,'startGuess');
+  if(r.ph==='ans'&&!IT().spun)return spinView();
+  if(r.ph==='ans')return qCard('ans');
+  if(r.ph==='gs')return qCard('gs');
+  if(r.ph==='rev')return revealCard();
+  if(r.ph==='sum'){
+    const s=r.items.reduce((a,b)=>a+(b.pts||0),0),n=r.items.length,pc=s/n;
+    const msg=pc>=.8?'Telepatia de parella.':pc>=.5?'Bastant bé, però hi ha marge.':pc>0?'Caldrà parlar més durant el sopar.':'Sou dos desconeguts encantadors.';
+    return `${topbar()}<div class="grow"></div><div class="center" style="color:${P[g].c}"><p class="sub">${esc(Acap(g))} ha encertat</p>
+    <div class="big pop">${fmt(s)}<span style="font-size:.4em;color:var(--mute)">/${n}</span></div>
+    <p class="sub">sobre ${esc(A(p))}</p><h2 style="margin:16px 0;font-size:26px;color:var(--ink)">${msg}</h2></div><div class="grow"></div>
+    <button class="btn ${P[g].k}" data-a="nextRound">${G().r===0?'Intercanviem papers':'Veure el resultat final'}</button>`;
+  }
+}
+function spinView(){
+  const it=IT(),k=CK.indexOf(it.c),target=-(72*k+36);
+  let to=wheelRot+720;to=to-(((to-target)%360)+360)%360;
+  const from=wheelRot;wheelRot=to;
+  clearTimeout(spinT);
+  spinT=setTimeout(()=>{if(S.game&&IT()===it){it.spun=true;save();render()}},reduce?250:1350);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{const w=app.querySelector('.wg');if(w)w.style.transform=`rotate(${to}deg)`}));
+  return `${topbar()}${dots()}<div class="grow spin">${wheel(from,String(R().i+1))}<h2 style="font-size:28px">Pregunta ${R().i+1}</h2><p class="sub">Gira la ruleta…</p></div>`;
+}
+function finalView(){
+  const a=score('roger'),b=score('marta');
+  const w=a>b?'roger':b>a?'marta':null;
+  const box=p=>`<div style="background:${P[p].c}">${w===p?'<span class="crown">Guanya</span><br>':''}<b>${fmt(score(p))}</b>${P[p].n}</div>`;
+  return `<div class="grow"></div><div class="center"><p class="sub">Resultat final</p>
+  <h1 style="font-size:clamp(38px,11vw,50px);margin-top:8px;${w?`color:${P[w].c}`:''}">${w?`Guanya ${esc(A(w))}!`:'Empat!'}</h1>
+  <p style="font-weight:800;margin:10px 0 0">${w?`${esc(Acap(w))} coneix millor ${esc(A(other(w)))} que a l'inrevés.`:'Us coneixeu exactament igual de bé. O igual de malament.'}</p></div>
+  <div class="vsres">${box('roger')}${box('marta')}</div>
+  <div class="tally"><div class="t" style="color:var(--roger)"><b>${S.tally.roger}</b><small>Roger</small></div><div class="t"><b>${S.tally.emp}</b><small>empats</small></div><div class="t" style="color:var(--marta)"><b>${S.tally.marta}</b><small>Marta</small></div></div>
+  <div class="grow"></div><div class="stackb"><button class="btn" data-a="rematch">Revenja</button><button class="btn alt" data-a="endHome">Tornar a l'inici</button></div>`;
+}
+
+/* ---------- pantalles ---------- */
+function home(){
+  const t=S.tally;
+  return `<div class="hero"><h1 class="logo"><span class="a">Roger</span><span class="vs">vs</span><span class="b">Marta</span></h1>
+  <p class="sub">Qui coneix millor l'altre?</p></div>
+  ${wheel(0,'VS','idle')}
+  <div class="tally"><div class="t" style="color:var(--roger)"><b>${t.roger}</b><small>Roger</small></div><div class="t"><b>${t.emp}</b><small>empats</small></div><div class="t" style="color:var(--marta)"><b>${t.marta}</b><small>Marta</small></div></div>
+  <div class="grow"></div>
+  <div class="stackb">${S.game?'<button class="btn m" data-a="go" data-v="game">Continua la partida</button>':''}
+  <button class="btn" data-a="go" data-v="setup">Nova partida</button>
+  <button class="btn alt" data-a="go" data-v="bank">Les nostres preguntes (${S.qs.length})</button></div>`;
+}
+function setup(){
+  const st=S.setup,avail=S.qs.filter(q=>st.cats.includes(q.c)).length;
+  return `<div class="hd"><button class="x" data-a="go" data-v="home" aria-label="Enrere">←</button><h2>Nova partida</h2></div>
+  <div class="sec"><h3>Preguntes per ronda</h3><div class="stepper"><button data-a="setN" data-v="-1" aria-label="Menys">−</button><b>${st.n}</b><button data-a="setN" data-v="1" aria-label="Més">+</button></div>
+  <p class="note">Cada partida té dues rondes: un respon sobre si mateix i l'altre endevina; després, a l'inrevés.</p></div>
+  <div class="sec"><h3>Categories</h3><div class="chips">${CK.map(k=>`<button class="cchip ${st.cats.includes(k)?'on':''}" style="${cc(k)}" data-a="togCat" data-v="${k}">${CATS[k].n}</button>`).join('')}</div>
+  <p class="note">${avail} preguntes disponibles${avail<st.n*2?" — se'n repetiran algunes entre rondes":''}.</p></div>
+  <div class="sec"><h3>Qui fa de protagonista primer?</h3><div class="seg">${['roger','marta'].map(p=>`<button class="${st.first===p?'on':''}" style="${st.first===p?`background:${P[p].c}`:''}" data-a="setFirst" data-v="${p}">${P[p].n}</button>`).join('')}</div></div>
+  <div class="grow"></div><button class="btn" data-a="newGame" ${avail&&st.cats.length?'':'disabled'}>Comença</button>`;
+}
+function bank(){
+  const list=S.qs.filter(q=>filter==='all'||q.c===filter);
+  return `<div class="hd"><button class="x" data-a="go" data-v="home" aria-label="Enrere">←</button><h2>Preguntes</h2></div>
+  <button class="btn" data-a="edit" data-v="">+ Nova pregunta</button><div style="height:14px"></div>
+  <div class="tabs"><button class="cchip ${filter==='all'?'on':''}" style="--cc:#c9bfdc" data-a="filter" data-v="all">Totes ${S.qs.length}</button>
+  ${CK.map(k=>`<button class="cchip ${filter===k?'on':''}" style="${cc(k)}" data-a="filter" data-v="${k}">${CATS[k].n} ${S.qs.filter(q=>q.c===k).length}</button>`).join('')}</div>
+  ${list.length?list.map(q=>`<div class="qi" style="${cc(q.c)}"><p>${esc(q.t)}${q.id[0]==='u'?'<span class="tag">vostra</span>':''}</p>
+  <small>${q.o?'Opcions: '+q.o.map(esc).join(' · '):'Resposta lliure'}</small>
+  <div class="row"><button class="btn alt" data-a="edit" data-v="${q.id}">Edita</button><button class="btn alt" data-a="del" data-v="${q.id}">Esborra</button></div></div>`).join('')
+  :'<p class="empty">Encara no hi ha preguntes en aquesta categoria.</p>'}
+  <button class="link" data-a="restore">Recupera les preguntes d'exemple</button>`;
+}
+function editor(){
+  const e=ed;
+  return `<div class="mod" data-a="closeBg"><div class="sheet" role="dialog" aria-modal="true">
+  <h2>${e.id?'Edita la pregunta':'Nova pregunta'}</h2>
+  <label>Categoria</label><div class="chips">${CK.map(k=>`<button class="cchip ${e.c===k?'on':''}" style="${cc(k)}" data-a="edCat" data-v="${k}">${CATS[k].n}</button>`).join('')}</div>
+  <label for="et">Pregunta</label><textarea id="et" rows="3" maxlength="160" placeholder="Quin és el teu…?">${esc(e.t)}</textarea>
+  <p class="note">Escriu-la com si parlessis a qui respon: «Quin és el teu…?»</p>
+  <label>Tipus de resposta</label><div class="seg">
+  <button class="${!e.o?'on':''}" style="${!e.o?'background:var(--dark)':''}" data-a="edType" data-v="free">Lliure</button>
+  <button class="${e.o?'on':''}" style="${e.o?'background:var(--dark)':''}" data-a="edType" data-v="opt">Opcions</button></div>
+  ${e.o?`<label>Opcions</label>${e.o.map((o,j)=>`<div class="oprow"><input type="text" class="eo" maxlength="60" value="${esc(o)}" placeholder="Opció ${j+1}" aria-label="Opció ${j+1}">${e.o.length>2?`<button data-a="rmOpt" data-v="${j}" aria-label="Treu l'opció">−</button>`:''}</div>`).join('')}
+  ${e.o.length<6?'<button class="btn alt sm" data-a="addOpt">+ Afegeix opció</button>':''}`:''}
+  <p class="err" id="err"></p>
+  <div class="row"><button class="btn alt" data-a="close">Cancel·la</button><button class="btn" data-a="saveQ">Desa</button></div></div></div>`;
+}
+function confirmBox(title,text,ok,act){
+  return `<div class="mod" data-a="closeBg"><div class="sheet" role="dialog" aria-modal="true"><h2>${esc(title)}</h2><p style="margin:0 0 18px;font-weight:700">${esc(text)}</p>
+  <div class="row"><button class="btn alt" data-a="close">Cancel·la</button><button class="btn" style="background:#dc2626" data-a="${act}">${esc(ok)}</button></div></div></div>`;
+}
+function render(){
+  if(view==='game'&&!S.game)view='home';
+  app.innerHTML=view==='home'?home():view==='setup'?setup():view==='bank'?bank():renderGame();
+  layer.innerHTML=modal==='ed'?editor():modal?confirmBox(...modal):'';
+  const fa=document.getElementById('fa');
+  if(fa){fa.addEventListener('input',()=>{const r=R(),it=IT(),v=fa.value.trim()?fa.value:null;r.ph==='ans'?it.ans=v:it.gs=v;document.getElementById('nx').disabled=!v;save()})}
+}
+function syncEd(){if(!ed)return;const t=document.getElementById('et');if(t)ed.t=t.value;if(ed.o)ed.o=[...document.querySelectorAll('.eo')].map(i=>i.value)}
+
+const act={
+  go:v=>{view=v;window.scrollTo(0,0);render()},
+  setN:v=>{S.setup.n=Math.max(5,Math.min(10,S.setup.n+ +v));save();render()},
+  togCat:v=>{const c=S.setup.cats;S.setup.cats=c.includes(v)?c.filter(x=>x!==v):[...c,v];save();render()},
+  setFirst:v=>{S.setup.first=v;save();render()},
+  newGame,
+  start:()=>{R().ph='ans';R().i=0;save();render()},
+  startGuess:()=>{R().ph='gs';R().i=0;save();render()},
+  choose:(v,b)=>{const it=IT(),o=it.o[+v];R().ph==='ans'?it.ans=o:it.gs=o;save();
+    app.querySelectorAll('.opt').forEach(x=>x.classList.toggle('sel',x===b));document.getElementById('nx').disabled=false},
+  prev:()=>{R().i--;save();render()},
+  next:()=>{const r=R(),n=r.items.length;
+    if(r.i<n-1){r.i++}else{r.ph=r.ph==='ans'?'h2':r.ph==='gs'?'rev':'sum';r.i=0}
+    save();window.scrollTo(0,0);render()},
+  swap:()=>{const r=R(),it=IT(),used=G().rounds.flatMap(x=>x.items.map(i=>i.qid));
+    let pool=S.qs.filter(q=>!used.includes(q.id)&&q.c===it.c);
+    if(!pool.length)pool=S.qs.filter(q=>!used.includes(q.id)&&S.setup.cats.includes(q.c));
+    if(!pool.length)pool=S.qs.filter(q=>!used.includes(q.id));
+    if(!pool.length)return;const q=shuffle(pool)[0];
+    r.items[r.i]={qid:q.id,c:q.c,t:q.t,o:q.o?[...q.o]:null,ans:null,gs:null,pts:null,spun:false,shown:false};save();render()},
+  reveal:()=>{const it=IT();it.shown=true;
+    if(it.o||norm(it.ans)===norm(it.gs))it.pts=it.ans===it.gs||norm(it.ans)===norm(it.gs)?1:0;save();render()},
+  judge:v=>{IT().pts=+v;save();render()},
+  nextRound:()=>{const g=G();if(g.r===0){g.r=1}else{g.done=true;const a=score('roger'),b=score('marta');S.tally[a>b?'roger':b>a?'marta':'emp']++}
+    lastScore={};save();render()},
+  rematch:()=>{S.game=null;newGame()},
+  endHome:()=>{S.game=null;view='home';save();render()},
+  quit:()=>{modal=['Sortir de la partida?','Pots continuar-la més tard des de l\'inici, o descartar-la del tot.','Descarta-la','discard'];render();
+    layer.querySelector('.row').insertAdjacentHTML('beforeend','<button class="btn alt" data-a="pause">Més tard</button>')},
+  pause:()=>{modal=null;view='home';render()},
+  discard:()=>{modal=null;S.game=null;view='home';save();render()},
+  filter:v=>{filter=v;render()},
+  edit:v=>{const q=S.qs.find(x=>x.id===v);ed=q?{id:q.id,c:q.c,t:q.t,o:q.o?[...q.o]:null}:{id:'',c:filter==='all'?'gustos':filter,t:'',o:null};modal='ed';render();setTimeout(()=>document.getElementById('et')?.focus(),300)},
+  edCat:v=>{syncEd();ed.c=v;render()},
+  edType:v=>{syncEd();ed.o=v==='opt'?(ed.o||['','']):null;render()},
+  addOpt:()=>{syncEd();ed.o.push('');render()},
+  rmOpt:v=>{syncEd();ed.o.splice(+v,1);render()},
+  saveQ:()=>{syncEd();const t=ed.t.trim(),o=ed.o?ed.o.map(s=>s.trim()).filter(Boolean):null,err=document.getElementById('err');
+    if(!t){err.textContent='Escriu la pregunta.';return}
+    if(o&&o.length<2){err.textContent='Calen almenys dues opcions.';return}
+    if(o&&new Set(o.map(norm)).size!==o.length){err.textContent='Hi ha opcions repetides.';return}
+    const q={id:ed.id||'u'+Date.now(),c:ed.c,t,o};
+    const i=S.qs.findIndex(x=>x.id===q.id);i>=0?S.qs[i]=q:S.qs.unshift(q);
+    ed=null;modal=null;save();render()},
+  del:v=>{const q=S.qs.find(x=>x.id===v);modal=['Esborrar la pregunta?','«'+q.t+'»','Esborra','delOk'];modal.id=v;render()},
+  delOk:()=>{const id=modal.id;S.qs=S.qs.filter(q=>q.id!==id);modal=null;save();render()},
+  restore:()=>{const have=new Set(S.qs.map(q=>q.id));const add=SEED.filter(q=>!have.has(q.id)).map(q=>({...q}));S.qs.push(...add);
+    modal=['Fet',add.length?`S'han recuperat ${add.length} preguntes d'exemple.`:'Ja teniu totes les preguntes d\'exemple.','D\'acord','close'];render()},
+  close:()=>{ed=null;modal=null;render()},
+  closeBg:(v,b,e)=>{if(e.target===b)act.close()}
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;
+  if(b.dataset.a==='closeBg'&&e.target!==b)return;act[b.dataset.a]?.(b.dataset.v,b,e)});
+render();
+}
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
